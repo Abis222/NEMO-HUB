@@ -1,162 +1,162 @@
---// Services
+--// SERVICES
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
 
---// ScreenGui
+--// CONFIG FILE
+local configFile = "NEMO_HUB_Config.json"
+
+local function saveConfig(data)
+	if writefile then
+		writefile(configFile, HttpService:JSONEncode(data))
+	end
+end
+
+local function loadConfig()
+	if readfile and isfile and isfile(configFile) then
+		return HttpService:JSONDecode(readfile(configFile))
+	end
+	return {AutoFarm = false}
+end
+
+local config = loadConfig()
+
+--// KEY SYSTEM
+local KEY = "NEMO-123"
+
+local KeyUI = Instance.new("ScreenGui")
+KeyUI.Parent = CoreGui
+
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0,300,0,180)
+KeyFrame.Position = UDim2.new(0.35,0,0.35,0)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+KeyFrame.Parent = KeyUI
+
+local KeyBox = Instance.new("TextBox")
+KeyBox.Size = UDim2.new(0.8,0,0,40)
+KeyBox.Position = UDim2.new(0.1,0,0.3,0)
+KeyBox.PlaceholderText = "Enter Key..."
+KeyBox.Parent = KeyFrame
+
+local Enter = Instance.new("TextButton")
+Enter.Size = UDim2.new(0.8,0,0,40)
+Enter.Position = UDim2.new(0.1,0,0.6,0)
+Enter.Text = "Unlock"
+Enter.Parent = KeyFrame
+
+--// MAIN HUB (hidden until key)
 local gui = Instance.new("ScreenGui")
-gui.Parent = game.CoreGui
-gui.Name = "BloxFruitStyleUI"
+gui.Parent = CoreGui
+gui.Name = "NEMO_HUB"
+gui.Enabled = false
 
---// Blur effect (simulated UI feel)
-local blur = Instance.new("BlurEffect")
-blur.Size = 0
-blur.Parent = game.Lighting
-
---// Main Frame
+--// MAIN FRAME
 local Main = Instance.new("Frame")
 Main.Parent = gui
-Main.Size = UDim2.new(0, 0, 0, 260)
-Main.Position = UDim2.new(0.08, 0, 0.3, 0)
-Main.BackgroundColor3 = Color3.fromRGB(20,20,20)
-Main.BorderSizePixel = 0
+Main.Size = UDim2.new(0,0,0,320)
+Main.Position = UDim2.new(0.3,0,0.25,0)
+Main.BackgroundColor3 = Color3.fromRGB(18,18,18)
 Main.ClipsDescendants = true
 
---// Top Bar
-local TopBar = Instance.new("Frame")
-TopBar.Parent = Main
-TopBar.Size = UDim2.new(1,0,0,35)
-TopBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
-TopBar.BorderSizePixel = 0
+--// TOP BAR
+local Top = Instance.new("Frame")
+Top.Size = UDim2.new(1,0,0,35)
+Top.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Top.Parent = Main
 
 local Title = Instance.new("TextLabel")
-Title.Parent = TopBar
 Title.Size = UDim2.new(1,0,1,0)
-Title.Text = "⚔ Blox Fruits UI"
+Title.Text = "⚡ NEMO HUB"
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.BackgroundTransparency = 1
+Title.Parent = Top
 
---// Toggle Button
-local Toggle = Instance.new("TextButton")
-Toggle.Parent = gui
-Toggle.Size = UDim2.new(0,120,0,40)
-Toggle.Position = UDim2.new(0,10,0.5,0)
-Toggle.Text = "MENU"
-Toggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
+--// SIDEBAR
+local Side = Instance.new("Frame")
+Side.Size = UDim2.new(0,120,1,-35)
+Side.Position = UDim2.new(0,0,0,35)
+Side.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Side.Parent = Main
 
---// Tabs holder
-local Body = Instance.new("Frame")
-Body.Parent = Main
-Body.Size = UDim2.new(1,0,1,-35)
-Body.Position = UDim2.new(0,0,0,35)
-Body.BackgroundTransparency = 1
+--// CONTENT
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1,-120,1,-35)
+Content.Position = UDim2.new(0,120,0,35)
+Content.BackgroundTransparency = 1
+Content.Parent = Main
 
---// Open/Close animation
-local opened = false
-
+--// OPEN ANIMATION
 local function openUI()
-	blur.Size = 10
-	TweenService:Create(Main, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-		Size = UDim2.new(0, 340,0,260)
+	gui.Enabled = true
+	TweenService:Create(Main, TweenInfo.new(0.35), {
+		Size = UDim2.new(0,420,0,320)
 	}):Play()
 end
 
-local function closeUI()
-	blur.Size = 0
-	local t = TweenService:Create(Main, TweenInfo.new(0.35), {
-		Size = UDim2.new(0,0,0,260)
-	})
-	t:Play()
-	t.Completed:Wait()
-end
-
-Toggle.MouseButton1Click:Connect(function()
-	opened = not opened
-	if opened then openUI() else closeUI() end
-end)
-
---// Drag System
-local dragging, dragInput, startPos, startMouse
-
-TopBar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		startMouse = input.Position
-		startPos = Main.Position
+--// KEY CHECK
+Enter.MouseButton1Click:Connect(function()
+	if KeyBox.Text == KEY then
+		KeyUI:Destroy()
+		openUI()
+	else
+		KeyBox.Text = "Wrong Key!"
 	end
 end)
 
-TopBar.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = false
-	end
-end)
+--// TAB SYSTEM
+local current
 
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - startMouse
-		Main.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
-
---// Tabs System
-local selected
-
-local function createTab(name, y)
+local function createTab(icon, name, y)
 	local b = Instance.new("TextButton")
-	b.Parent = Body
-	b.Size = UDim2.new(0.9,0,0,35)
-	b.Position = UDim2.new(0.05,0,0,y)
-	b.Text = name
-	b.BackgroundColor3 = Color3.fromRGB(45,45,45)
-	b.TextColor3 = Color3.fromRGB(255,255,255)
+	b.Size = UDim2.new(1,0,0,45)
+	b.Position = UDim2.new(0,0,0,y)
+	b.Text = icon.." "..name
+	b.TextColor3 = Color3.fromRGB(200,200,200)
+	b.BackgroundColor3 = Color3.fromRGB(35,35,35)
 	b.BorderSizePixel = 0
+	b.Parent = Side
 	return b
 end
 
-local function highlight(btn)
-	if selected then
-		selected.BackgroundColor3 = Color3.fromRGB(45,45,45)
+local function select(btn)
+	if current then
+		current.BackgroundColor3 = Color3.fromRGB(35,35,35)
 	end
-	selected = btn
+	current = btn
 	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
 end
 
---// Tabs
-local MainTab = createTab("🏠 Main", 10)
-local CombatTab = createTab("⚔ Combat", 55)
-local SettingsTab = createTab("⚙ Settings", 100)
+--// TABS
+local MainTab = createTab("🏠", "Main", 10)
+local CombatTab = createTab("⚔", "Combat", 60)
+local SettingsTab = createTab("⚙", "Settings", 110)
 
-MainTab.MouseButton1Click:Connect(function() highlight(MainTab) end)
-CombatTab.MouseButton1Click:Connect(function() highlight(CombatTab) end)
-SettingsTab.MouseButton1Click:Connect(function() highlight(SettingsTab) end)
+MainTab.MouseButton1Click:Connect(function() select(MainTab) end)
+CombatTab.MouseButton1Click:Connect(function() select(CombatTab) end)
+SettingsTab.MouseButton1Click:Connect(function() select(SettingsTab) end)
 
---// Auto Farm Toggle (Main Tab)
-local AutoFarm = false
+--// MAIN PAGE - AUTO FARM
+local AutoFarm = config.AutoFarm
 
 local AutoBtn = Instance.new("TextButton")
-AutoBtn.Parent = Body
-AutoBtn.Size = UDim2.new(0.9,0,0,40)
-AutoBtn.Position = UDim2.new(0.05,0,0,150)
-AutoBtn.Text = "Auto Farm: OFF"
-AutoBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-AutoBtn.BorderSizePixel = 0
+AutoBtn.Parent = Content
+AutoBtn.Size = UDim2.new(0,220,0,45)
+AutoBtn.Position = UDim2.new(0,20,0,20)
+AutoBtn.Text = AutoFarm and "Auto Farm: ON" or "Auto Farm: OFF"
+AutoBtn.BackgroundColor3 = AutoFarm and Color3.fromRGB(0,200,100) or Color3.fromRGB(60,60,60)
 
 AutoBtn.MouseButton1Click:Connect(function()
 	AutoFarm = not AutoFarm
+	config.AutoFarm = AutoFarm
 
-	if AutoFarm then
-		AutoBtn.Text = "Auto Farm: ON"
-		AutoBtn.BackgroundColor3 = Color3.fromRGB(0,200,100)
-	else
-		AutoBtn.Text = "Auto Farm: OFF"
-		AutoBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-	end
+	AutoBtn.Text = AutoFarm and "Auto Farm: ON" or "Auto Farm: OFF"
+	AutoBtn.BackgroundColor3 = AutoFarm and Color3.fromRGB(0,200,100) or Color3.fromRGB(60,60,60)
+
+	saveConfig(config)
 end)
 
---// Start state (animation in)
-Main.Size = UDim2.new(0,0,0,260)
+--// APPLY SAVED STATE
+if config.AutoFarm then
+	AutoFarm = true
+end
