@@ -1,5 +1,4 @@
--- Loader
-local base = "https://raw.githubusercontent.com/Abis222/NEMO-HUB/main/"
+local Farm = require(script.Farm)
+local UI = require(script.UI)
 
-loadstring(game:HttpGet(base .. "ui.lua"))()
-loadstring(game:HttpGet(base .. "farm.lua"))()
+UI.create(Farm)
