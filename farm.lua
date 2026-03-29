@@ -3,19 +3,26 @@ local Farm = {}
 Farm.running = false
 
 function Farm:start()
+    if self.running then return end
     self.running = true
-    print("Farm started")
 
-    -- هنا تحط كود الفارم حقك
+    print("Auto Farm Started")
+
     while self.running do
-        wait(1)
-        print("Farming...")
+        task.wait(0.3) -- أسرع وأخف
+
+        -- 🔥 هنا تحط عمل الفارم الحقيقي
+        -- مثال: ضرب / جمع / انتقال
+
+        pcall(function()
+            print("Farming Tick...")
+        end)
     end
 end
 
 function Farm:stop()
     self.running = false
-    print("Farm stopped")
+    print("Auto Farm Stopped")
 end
 
 return Farm
