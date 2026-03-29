@@ -1,89 +1,74 @@
 local UI = {}
 
 function UI.create(Farm)
-    local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
 
+    local Players = game:GetService("Players")
     local player = Players.LocalPlayer
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-    -- زر إظهار / إخفاء
-    local ToggleGuiButton = Instance.new("TextButton")
-    ToggleGuiButton.Size = UDim2.new(0, 130, 0, 40)
-    ToggleGuiButton.Position = UDim2.new(0, 10, 0.5, 0)
-    ToggleGuiButton.Text = "Open / Close"
-    ToggleGuiButton.Parent = ScreenGui
+    -- زر فتح اللوحة
+    local OpenButton = Instance.new("TextButton")
+    OpenButton.Size = UDim2.new(0, 140, 0, 40)
+    OpenButton.Position = UDim2.new(0, 10, 0.5, 0)
+    OpenButton.Text = "Auto Farm"
+    OpenButton.Parent = ScreenGui
 
-    -- الفريم الرئيسي
+    -- اللوحة
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 220, 0, 140)
-    Frame.Position = UDim2.new(0.4, 0, 0.4, 0)
-    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Frame.Size = UDim2.new(0, 220, 0, 180)
+    Frame.Position = UDim2.new(0.4, 0, 0.35, 0)
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.Visible = false
     Frame.Parent = ScreenGui
 
-    -- شكل احترافي
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 10)
-    Corner.Parent = Frame
+    Instance.new("UICorner", Frame)
 
-    local Stroke = Instance.new("UIStroke")
-    Stroke.Thickness = 2
-    Stroke.Color = Color3.fromRGB(0, 170, 255)
-    Stroke.Parent = Frame
+    -- زر Melee
+    local Melee = Instance.new("TextButton")
+    Melee.Size = UDim2.new(1, -20, 0, 40)
+    Melee.Position = UDim2.new(0, 10, 0, 10)
+    Melee.Text = "🥊 Melee"
+    Melee.Parent = Frame
 
-    -- زر Start/Stop
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0.9, 0, 0.5, 0)
-    Button.Position = UDim2.new(0.05, 0, 0.25, 0)
-    Button.Text = "Start Farm"
-    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Parent = Frame
+    -- زر Fruit
+    local Fruit = Instance.new("TextButton")
+    Fruit.Size = UDim2.new(1, -20, 0, 40)
+    Fruit.Position = UDim2.new(0, 10, 0, 60)
+    Fruit.Text = "🍇 Fruit"
+    Fruit.Parent = Frame
 
-    Instance.new("UICorner", Button)
+    -- زر Sword
+    local Sword = Instance.new("TextButton")
+    Sword.Size = UDim2.new(1, -20, 0, 40)
+    Sword.Position = UDim2.new(0, 10, 0, 110)
+    Sword.Text = "⚔️ Sword"
+    Sword.Parent = Frame
 
-    -- أنيميشن فتح/إغلاق
-    local open = true
+    local selected = "Melee"
+    Farm.combatType = selected
 
-    local function animateFrame(scale)
-        TweenService:Create(
-            Frame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {Size = scale}
-        ):Play()
+    local function select(typeName)
+        selected = typeName
+        Farm.combatType = typeName
+        print("Selected Combat:", typeName)
     end
 
-    -- تشغيل/إيقاف الفارم
-    local running = false
-
-    Button.MouseButton1Click:Connect(function()
-        running = not running
-
-        if running then
-            Button.Text = "Stop Farm"
-            task.spawn(function()
-                Farm:start()
-            end)
-        else
-            Button.Text = "Start Farm"
-            Farm:stop()
-        end
+    Melee.MouseButton1Click:Connect(function()
+        select("Melee")
     end)
 
-    -- فتح / إغلاق GUI
-    ToggleGuiButton.MouseButton1Click:Connect(function()
-        open = not open
+    Fruit.MouseButton1Click:Connect(function()
+        select("Fruit")
+    end)
 
-        if open then
-            Frame.Visible = true
-            animateFrame(UDim2.new(0, 220, 0, 140))
-        else
-            animateFrame(UDim2.new(0, 0, 0, 0))
-            task.wait(0.2)
-            Frame.Visible = false
-        end
+    Sword.MouseButton1Click:Connect(function()
+        select("Sword")
+    end)
+
+    OpenButton.MouseButton1Click:Connect(function()
+        Frame.Visible = not Frame.Visible
     end)
 end
 
