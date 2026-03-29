@@ -1,10 +1,21 @@
-_G.AutoFarm = false
+local Farm = {}
 
-task.spawn(function()
-    while true do
-        task.wait()
-        if _G.AutoFarm then
-            print("Farming...")
-        end
+Farm.running = false
+
+function Farm:start()
+    self.running = true
+    print("Farm started")
+
+    -- هنا تحط كود الفارم حقك
+    while self.running do
+        wait(1)
+        print("Farming...")
     end
-end)
+end
+
+function Farm:stop()
+    self.running = false
+    print("Farm stopped")
+end
+
+return Farm
