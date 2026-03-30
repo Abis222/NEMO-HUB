@@ -1,96 +1,62 @@
--- NEMO HUB | By Abbas
+-- NEMO HUB | Secure Loader + Server Auth
 
--- Services
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local player = Players.LocalPlayer
-
--- GUI
-local gui = Instance.new("ScreenGui")
-gui.Name = "NEMO_HUB"
-gui.Parent = game.CoreGui
-
--- Main Frame
-local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 650, 0, 400)
-main.Position = UDim2.new(0.5, -325, 0.5, -200)
-main.BackgroundColor3 = Color3.fromRGB(18,18,18)
-main.BorderSizePixel = 0
-
--- Sidebar
-local side = Instance.new("Frame", main)
-side.Size = UDim2.new(0, 180, 1, 0)
-side.BackgroundColor3 = Color3.fromRGB(12,12,12)
-
--- Title
-local title = Instance.new("TextLabel", side)
-title.Text = "NEMO HUB"
-title.Size = UDim2.new(1,0,0,60)
-title.TextColor3 = Color3.new(1,1,1)
-title.BackgroundTransparency = 1
-title.TextScaled = true
-
--- Tabs
-local function Tab(name, y)
-    local b = Instance.new("TextButton", side)
-    b.Size = UDim2.new(1,-10,0,40)
-    b.Position = UDim2.new(0,5,0,y)
-    b.Text = name
-    b.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    b.TextColor3 = Color3.new(1,1,1)
-    return b
+-- تشفير الرابط
+local function decode(b)
+    local b64='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    b = string.gsub(b, '[^'..b64..'=]', '')
+    return (b:gsub('.', function(x)
+        if x == '=' then return '' end
+        local r,f='',(b64:find(x)-1)
+        for i=6,1,-1 do
+            r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0')
+        end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if #x ~= 8 then return '' end
+        local c=0
+        for i=1,8 do
+            c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0)
+        end
+        return string.char(c)
+    end))
 end
 
-local mainTab = Tab("Main", 70)
-local farmTab = Tab("Auto Farm", 120)
-local tpTab = Tab("Teleport", 170)
+-- روابط مشفرة
+local SCRIPT_URL = decode("aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FiaXMyMjIvTkVNTy1IVUIvbWFpbi9tYWluLmx1YQ==")
+local KEY_URL = "https://pastebin.com/eqqcjTxN" -- 🔥 حط رابطك هنا
 
--- Content
-local content = Instance.new("Frame", main)
-content.Size = UDim2.new(1,-180,1,0)
-content.Position = UDim2.new(0,180,0,0)
-content.BackgroundTransparency = 1
+-- Anti Spam
+if getgenv().NEMO then return end
+getgenv().NEMO = true
 
--- Dropdown (Select Tool)
-local tool = "Melee"
+-- طلب مفتاح
+local key = game:GetService("Players").LocalPlayer:Kick("Enter Key in Executor Console")
 
-local dropdown = Instance.new("TextButton", content)
-dropdown.Size = UDim2.new(0,200,0,40)
-dropdown.Position = UDim2.new(0,20,0,40)
-dropdown.Text = "Tool: "..tool
-dropdown.BackgroundColor3 = Color3.fromRGB(40,40,40)
-dropdown.TextColor3 = Color3.new(1,1,1)
+-- تحقق من المفتاح
+local valid = false
 
-dropdown.MouseButton1Click:Connect(function()
-    if tool == "Melee" then
-        tool = "Sword"
-    elseif tool == "Sword" then
-        tool = "Fruit"
-    else
-        tool = "Melee"
+local success, data = pcall(function()
+    return game:HttpGet(KEY_URL)
+end)
+
+if success and data then
+    if string.find(data, key) then
+        valid = true
     end
-    dropdown.Text = "Tool: "..tool
+end
+
+if not valid then
+    return warn("Invalid Key ❌")
+end
+
+-- تحميل السكربت
+local ok, script = pcall(function()
+    return game:HttpGet(SCRIPT_URL)
 end)
 
--- Toggle Auto Farm
-local farming = false
-
-local toggle = Instance.new("TextButton", content)
-toggle.Size = UDim2.new(0,200,0,40)
-toggle.Position = UDim2.new(0,20,0,100)
-toggle.Text = "Auto Farm: OFF"
-toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
-toggle.TextColor3 = Color3.new(1,1,1)
-
-toggle.MouseButton1Click:Connect(function()
-    farming = not farming
-    toggle.Text = farming and "Auto Farm: ON" or "Auto Farm: OFF"
-    toggle.BackgroundColor3 = farming and Color3.fromRGB(0,170,0) or Color3.fromRGB(50,50,50)
-end)
-
--- Toggle GUI (RightShift)
-UIS.InputBegan:Connect(function(i)
-    if i.KeyCode == Enum.KeyCode.RightShift then
-        main.Visible = not main.Visible
-    end
-end)
+if ok then
+    loadstring(script)()
+    print("NEMO HUB Loaded 🔥")
+else
+    warn("Failed to Load Script ❌")
+end
